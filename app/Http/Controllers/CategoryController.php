@@ -2,62 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Categoryrqt;
+use App\Http\Resources\Categoryresource;
 use App\Models\Category;
+use App\Services\Categoryservice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
-    public function index(Request $request)
+    protected $category;
+    public function __construct(Categoryservice $category)
     {
-        // Legacy issue: returns all records, no cache, no pagination.
-        $categories = Category::orderBy('created_at', 'desc')->get();
-        return response()->json(['categories' => $categories]);
+        $this->category = $category;
+    }
+    public function index()
+    {
+        return response()->json([
+            'categories' => Categoryresource::collection($this->category->index())
+        ]);
     }
 
-    public function store(Request $request)
+
+    public function store(Categoryrqt $request)
     {
-        if (!$request->name) {
-            return response()->json(['error' => 'name required'], 422);
-        }
-
-        $category = Category::create($request->all());
-        Log::info('Category created', ['category_id' => $category->id]);
-
-        return response()->json($category, 201);
+        $this->category->store($request);
+        return response()->json([
+            'ok' => true,
+            'message' => 'Category creada',
+        ]);
     }
+
 
     public function show($id)
     {
-        return response()->json(Category::find($id));
+        return Categoryresource::make($this->category->show($id));
     }
 
-    public function update(Request $request, $id)
+    public function update(Categoryrqt $request, $id)
     {
-        $category = Category::find($id);
-
-        if (!$category) {
-            return response()->json(['message' => 'No category'], 404);
-        }
-
-        $category->fill($request->all());
-        $category->save();
-
-        Log::info('Category updated', ['category_id' => $category->id]);
-
-        return response()->json(['updated' => true, 'category' => $category]);
+        $this->category->update($request, $id);
+        return response()->json(['updated' => true, 'message' => 'Category actualizada']);
     }
 
     public function destroy($id)
     {
-        $category = Category::find($id);
-        if (!$category) {
-            return response()->json(['error' => 'not found'], 404);
-        }
-
-        $category->delete();
-        Log::info('Category deleted', ['category_id' => $id]);
-
-        return response()->json(['ok' => true]);
+        $this->category->destroy($id);
+        return response()->json(['ok' => true, 'message' => 'Category borrada']);
     }
 }

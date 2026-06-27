@@ -54,6 +54,65 @@ GET  /api/dashboard
 GET  /api/health
 ```
 
-## Nota
 
-Este proyecto tiene errores intencionales de arquitectura, rendimiento, seguridad, manejo de errores y mantenibilidad. No se debe tomar como ejemplo de buenas prácticas.
+
+## Error en las dependencias desactualizadas
+
+
+```txt
+fruitcake/laravel-cors": "^2.0, 
+"php": "^7.4|^8.0",
+
+```
+1.-Eliminacion la dependencia  "fruitcake/laravel-cors" por que esta desactualiza ya que laravel 11  tiene un comando para manejar las cors .
+
+2.-Actualizacion la version de php a una version mas reciente como la ^8.2 el cual es compatible con laravel  11 
+3.-Agrege las carpetas para el manejo de la cache en las carpetas bootstrap ,framework.
+4.-Creacion de la migracion de  tabla cache 
+
+```txt
+ public function up(): void
+    {
+        Schema::create('cache', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->mediumText('value');
+            $table->integer('expiration');
+        });
+
+        Schema::create('cache_locks', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->string('owner');
+            $table->integer('expiration');
+        }); 
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('cache');
+        Schema::dropIfExists('cache_locks');
+    }
+```
+5.-Instalacion de Sanctum 
+```txt
+ php artisan install:api
+```
+6-Instalacion e implementacion del archivo cors en la carpeta config 
+
+```txt
+ php artisan config:publish cors
+```
+## Estructura del proyecto en base al modelo MVC
+1.-Implementacion de optimizaciones
+ Se optimizó la estructura de la API mediante el uso de **Form Requests** para las validaciones en los controlladores de login ,producto ,Categoria.
+
+2.-Se implementaron **API Resources** para unificar el formato de las respuestas JSON.
+
+3-Se mejoró el proceso de autenticación integrando **Laravel Sanctum** para el manejo seguro de tokens.
+
+
+
+
+
